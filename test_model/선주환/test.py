@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import csv
 import numpy as np
 from PIL import Image
 import os
 
-# RLE ?””ì½”ë”© ?•¨?ˆ˜
+# RLE ë””ì½”ë”© í•¨ìˆ˜
 def rle_decode(mask_rle, shape):
     s = mask_rle.split()
     starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
@@ -16,32 +14,32 @@ def rle_decode(mask_rle, shape):
         img[lo:hi] = 1
     return img.reshape(shape)
 
-# CSV ?ŒŒ?¼ ê²½ë¡œ
-csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"
+# CSV íŒŒì¼ ê²½ë¡œ
+csv_file_path = "C:\\Users\\ì„ ì£¼í™˜\\Desktop\\dacon_segmentation\\open\\train.csv"
 
-# ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ?¬ê¸?
+# ë§ˆìŠ¤í¬ ì´ë¯¸ì§€ í¬ê¸°
 image_width = 1024
 image_height = 1024
 
-# ê²°ê³¼ë¥? ????¥?•  ?´?” ê²½ë¡œ
-output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"
+# ê²°ê³¼ë¥¼ ì €ì¥í•  í´ë” ê²½ë¡œ
+output_folder = "C:\\Users\\ì„ ì£¼í™˜\\Desktop\\dacon_segmentation\\open\\mask"
 
-# ?´?”ê°? ì¡´ì¬?•˜ì§? ?•Š?œ¼ë©? ?ƒ?„±
+# í´ë”ê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ìƒì„±
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
-# CSV ?ŒŒ?¼ ?½ê¸?
+# CSV íŒŒì¼ ì½ê¸°
 with open(csv_file_path, 'r') as csvfile:
     reader = csv.reader(csvfile)
-    next(reader)  # ?—¤?” ?Š¤?‚µ
+    next(reader)  # í—¤ë” ìŠ¤í‚µ
     for idx, row in enumerate(reader):
-        # RLE ?¸ì½”ë”© ? •ë³? ê°?? ¸?˜¤ê¸?
-        mask_rle = row[-1]  # ë§ˆì??ë§? ?—´?´ RLE ?¸ì½”ë”© ? •ë³?
+        # RLE ì¸ì½”ë”© ì •ë³´ ê°€ì ¸ì˜¤ê¸°
+        mask_rle = row[-1]  # ë§ˆì§€ë§‰ ì—´ì´ RLE ì¸ì½”ë”© ì •ë³´
 
-        # RLE ?””ì½”ë”©?•˜?—¬ ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ?ƒ?„±
+        # RLE ë””ì½”ë”©í•˜ì—¬ ë§ˆìŠ¤í¬ ì´ë¯¸ì§€ ìƒì„±
         mask = rle_decode(mask_rle, (image_height, image_width))
 
-        # ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ????¥
-        mask_image = Image.fromarray(mask * 255)  # ?´ì§? ë§ˆìŠ¤?¬ë¥? 0ê³? 255ë¡? ë³??™˜
+        # ë§ˆìŠ¤í¬ ì´ë¯¸ì§€ ì €ì¥
+        mask_image = Image.fromarray(mask * 255)  # ì´ì§„ ë§ˆìŠ¤í¬ë¥¼ 0ê³¼ 255ë¡œ ë³€í™˜
         mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
         mask_image.save(mask_image_path)
