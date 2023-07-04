@@ -23,7 +23,7 @@ image_width = 1024
 image_height = 1024
 
 # 결과를 저장할 폴더 경로
-output_folder = "C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\mask"   #저장할 파일 경로
+output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"   #저장할 파일 경로
 
 # 폴더가 존재하지 않으면 생성
 if not os.path.exists(output_folder):
