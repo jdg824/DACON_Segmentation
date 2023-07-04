@@ -59,8 +59,8 @@ def rle_decode(mask_rle, shape):
 csv_file_path = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train.csv"
 
 # 마스크 이미지 크기
-image_width = 224
-image_height = 224
+image_width = 1024
+image_height = 1024
 
 # 결과를 저장할 폴더 경로
 output_folder = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\mask"
