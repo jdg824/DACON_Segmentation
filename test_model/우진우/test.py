@@ -1,65 +1,86 @@
-import tensorflow as tf
-from tensorflow.python.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, UpSampling2D
+# import csv
+# import numpy as np
+# from PIL import Image
+# import os
 
-# U-Net 모델 구현
-def unet(input_shape=(256, 256, 3)):
-    inputs = Input(input_shape)
-    
-    # 인코더 부분
-    conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
-    conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
-    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-    
-    conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
-    conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
-    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
-    
-    conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
-    conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
-    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-    
-    conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
-    conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
-    drop4 = Dropout(0.5)(conv4)
-    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
-    
-    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(pool4)
-    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(conv5)
-    drop5 = Dropout(0.5)(conv5)
-    
-    # 디코더 부분
-    up6 = Conv2D(512, 2, activation='relu', padding='same')(UpSampling2D(size=(2, 2))(drop5))
-    merge6 = concatenate([drop4, up6], axis=3)
-    conv6 = Conv2D(512, 3, activation='relu', padding='same')(merge6)
-    conv6 = Conv2D(512, 3, activation='relu', padding='same')(conv6)
-    
-    up7 = Conv2D(256, 2, activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv6))
-    merge7 = concatenate([conv3, up7], axis=3)
-    conv7 = Conv2D(256, 3, activation='relu', padding='same')(merge7)
-    conv7 = Conv2D(256, 3, activation='relu', padding='same')(conv7)
-    
-    up8 = Conv2D(128, 2, activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv7))
-    merge8 = concatenate([conv2, up8], axis=3)
-    conv8 = Conv2D(128, 3, activation='relu', padding='same')(merge8)
-    conv8 = Conv2D(128, 3, activation='relu', padding='same')(conv8)
-    
-    up9 = Conv2D(64, 2, activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv8))
-    merge9 = concatenate([conv1, up9], axis=3)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same')(merge9)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same')(conv9)
-    
-    # 최종 출력
-    outputs = Conv2D(1, 1, activation='sigmoid')(conv9)
-    
-    model = Model(inputs=inputs, outputs=outputs)
-    return model
+# # CSV 파일 경로
+# csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"
 
-# U-Net 모델 생성
-model = unet()
+# # 마스크 이미지 크기
+# image_width = 256
+# image_height = 256
 
-# 모델 컴파일
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# # 결과를 저장할 폴더 경로
+# output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"
 
-# 모델 요약 출력
-model.summary()
+# # 폴더가 존재하지 않으면 생성
+# if not os.path.exists(output_folder):
+#     os.makedirs(output_folder)
+
+# # CSV 파일 읽기
+# with open(csv_file_path, 'r') as csvfile:
+#     reader = csv.reader(csvfile)
+#     next(reader)  # 헤더 스킵
+#     for idx, row in enumerate(reader):
+#         # 픽셀 위치와 레이블 정보 가져오기
+#         pixel_info = list(map(int, row[:-1]))  # 마지막 열은 레이블이므로 제외
+#         label = int(row[-1])  # 마지막 열이 레이블
+
+#         #빈 마스크 이미지 생성
+#         mask_image = np.zeros((image_height, image_width), dtype=np.uint8)
+
+#         # 픽셀 단위로 레이블 할당
+#         for i in range(0, len(pixel_info), 2):
+#             x, y = pixel_info[i], pixel_info[i + 1]
+#             mask_image[y, x] = label
+
+#         # 마스크 이미지 저장
+#         mask_image = Image.fromarray(mask_image)
+#         mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
+#         mask_image.save(mask_image_path)
+
+import csv
+import numpy as np
+from PIL import Image
+import os
+
+# RLE 디코딩 함수
+def rle_decode(mask_rle, shape):
+    s = mask_rle.split()
+    starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
+    starts -= 1
+    ends = starts + lengths
+    img = np.zeros(shape[0]*shape[1], dtype=np.uint8)
+    for lo, hi in zip(starts, ends):
+        img[lo:hi] = 1
+    return img.reshape(shape)
+
+# CSV 파일 경로
+csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"
+
+# 마스크 이미지 크기
+image_width = 256
+image_height = 256
+
+# 결과를 저장할 폴더 경로
+output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"
+
+# 폴더가 존재하지 않으면 생성
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# CSV 파일 읽기
+with open(csv_file_path, 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    next(reader)  # 헤더 스킵
+    for idx, row in enumerate(reader):
+        # RLE 인코딩 정보 가져오기
+        mask_rle = row[-1]  # 마지막 열이 RLE 인코딩 정보
+
+        # RLE 디코딩하여 마스크 이미지 생성
+        mask = rle_decode(mask_rle, (image_height, image_width))
+
+        # 마스크 이미지 저장
+        mask_image = Image.fromarray(mask * 255)  # 이진 마스크를 0과 255로 변환
+        mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
+        mask_image.save(mask_image_path)
