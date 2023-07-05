@@ -61,10 +61,10 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_img'
-train_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_mask'
-val_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_image'
-val_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_mask'
+train_images_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\tra_img"
+train_masks_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\tra_ma"
+val_images_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\val_im"
+val_masks_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\val_ma"
 
 datagen = ImageDataGenerator(rescale=1./255)
 
@@ -105,9 +105,13 @@ val_generator = zip(val_dataset, val_masks_dataset)
 # Set up GPU configuration
 physical_devices = tf.config.list_physical_devices('GPU')
 if physical_devices:
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    tf.config.experimental.set_virtual_device_configuration(
+        physical_devices[0],
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)]  # 원하는 메모리 한도 설정
+    )
 else:
     print("No GPU available. Switching to CPU mode.")
+
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
@@ -116,4 +120,4 @@ model.compile(optimizer='adam', loss='binary_crossentropy')
 model.fit(train_generator, epochs=1, steps_per_epoch=4339, validation_data=val_generator, validation_steps=2801)
 
 # 학습된 모델 저장
-model.save_weights('C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\model_save')
+model.save_weights("C:\\Users\\IT\\Desktop\\DACON\\open\\model\\u_net_model")
