@@ -1,86 +1,116 @@
-# import csv
-# import numpy as np
-# from PIL import Image
-# import os
+import tensorflow as tf
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 
-# # CSV 파일 경로
-# csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"
+# U-Net 모델 정의
+def unet(input_shape):
+    # 인코더 부분
+    inputs = Input(input_shape)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-# # 마스크 이미지 크기
-# image_width = 256
-# image_height = 256
+    conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
+    conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-# # 결과를 저장할 폴더 경로
-# output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"
+    conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
+    conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
+    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
 
-# # 폴더가 존재하지 않으면 생성
-# if not os.path.exists(output_folder):
-#     os.makedirs(output_folder)
+    conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
+    conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
+    drop4 = Dropout(0.5)(conv4)
+    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
-# # CSV 파일 읽기
-# with open(csv_file_path, 'r') as csvfile:
-#     reader = csv.reader(csvfile)
-#     next(reader)  # 헤더 스킵
-#     for idx, row in enumerate(reader):
-#         # 픽셀 위치와 레이블 정보 가져오기
-#         pixel_info = list(map(int, row[:-1]))  # 마지막 열은 레이블이므로 제외
-#         label = int(row[-1])  # 마지막 열이 레이블
+    # 디코더 부분
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(pool4)
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(conv5)
+    drop5 = Dropout(0.5)(conv5)
 
-#         #빈 마스크 이미지 생성
-#         mask_image = np.zeros((image_height, image_width), dtype=np.uint8)
+    up6 = Conv2DTranspose(512, 2, strides=(2, 2), padding='same')(drop5)
+    up6 = concatenate([up6, drop4])
+    conv6 = Conv2D(512, 3, activation='relu', padding='same')(up6)
+    conv6 = Conv2D(512, 3, activation='relu', padding='same')(conv6)
 
-#         # 픽셀 단위로 레이블 할당
-#         for i in range(0, len(pixel_info), 2):
-#             x, y = pixel_info[i], pixel_info[i + 1]
-#             mask_image[y, x] = label
+    up7 = Conv2DTranspose(256, 2, strides=(2, 2), padding='same')(conv6)
+    up7 = concatenate([up7, conv3])
+    conv7 = Conv2D(256, 3, activation='relu', padding='same')(up7)
+    conv7 = Conv2D(256, 3, activation='relu', padding='same')(conv7)
 
-#         # 마스크 이미지 저장
-#         mask_image = Image.fromarray(mask_image)
-#         mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
-#         mask_image.save(mask_image_path)
+    up8 = Conv2DTranspose(128, 2, strides=(2, 2), padding='same')(conv7)
+    up8 = concatenate([up8, conv2])
+    conv8 = Conv2D(128, 3, activation='relu', padding='same')(up8)
+    conv8 = Conv2D(128, 3, activation='relu', padding='same')(conv8)
 
-import csv
-import numpy as np
-from PIL import Image
-import os
+    up9 = Conv2DTranspose(64, 2, strides=(2, 2), padding='same')(conv8)
+    up9 = concatenate([up9, conv1], axis=3)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same')(up9)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same')(conv9)
 
-# RLE 디코딩 함수
-def rle_decode(mask_rle, shape):
-    s = mask_rle.split()
-    starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
-    starts -= 1
-    ends = starts + lengths
-    img = np.zeros(shape[0]*shape[1], dtype=np.uint8)
-    for lo, hi in zip(starts, ends):
-        img[lo:hi] = 1
-    return img.reshape(shape)
+    outputs = Conv2D(1, 1, activation='sigmoid')(conv9)
 
-# CSV 파일 경로
-csv_file_path = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train.csv"
+    model = Model(inputs=inputs, outputs=outputs)
+    return model
 
-# 마스크 이미지 크기
-image_width = 224
-image_height = 224
+# 입력 이미지의 크기 지정
+input_shape = (1024, 1024, 3)
 
-# 결과를 저장할 폴더 경로
-output_folder = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\mask"
+# U-Net 모델 생성
+model = unet(input_shape)
 
-# 폴더가 존재하지 않으면 생성
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+# 데이터셋 경로 지정
+train_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_img'
+train_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_mask'
+val_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_img'
+val_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_mask'
 
-# CSV 파일 읽기
-with open(csv_file_path, 'r') as csvfile:
-    reader = csv.reader(csvfile)
-    next(reader)  # 헤더 스킵
-    for idx, row in enumerate(reader):
-        # RLE 인코딩 정보 가져오기
-        mask_rle = row[-1]  # 마지막 열이 RLE 인코딩 정보
+datagen = ImageDataGenerator(rescale=1./255)
 
-        # RLE 디코딩하여 마스크 이미지 생성
-        mask = rle_decode(mask_rle, (image_height, image_width))
+# 훈련 데이터셋 생성
+train_dataset = datagen.flow_from_directory(
+    train_images_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
 
-        # 마스크 이미지 저장
-        mask_image = Image.fromarray(mask * 255)  # 이진 마스크를 0과 255로 변환
-        mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
-        mask_image.save(mask_image_path)
+train_masks_dataset = datagen.flow_from_directory(
+    train_masks_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+train_generator = zip(train_dataset, train_masks_dataset)
+
+# 검증 데이터셋 생성
+val_dataset = datagen.flow_from_directory(
+    val_images_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+val_masks_dataset = datagen.flow_from_directory(
+    val_masks_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+val_generator = zip(val_dataset, val_masks_dataset)
+
+# Set up GPU configuration
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+# 모델 학습 설정
+model.compile(optimizer='adam', loss='binary_crossentropy')
+
+# 모델 학습
+model.fit(train_generator, epochs=10, validation_data=val_generator)
+
+# 학습된 모델 저장
+model.save_weights('C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_model')
