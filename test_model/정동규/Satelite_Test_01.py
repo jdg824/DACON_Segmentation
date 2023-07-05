@@ -117,3 +117,5 @@ model.fit(train_generator, epochs=10, validation_data=val_generator)
 
 # 학습된 모델 저장
 model.save_weights("C:\\Users\\IT\\Desktop\\DACON\\open\\model")
+
+#finish
