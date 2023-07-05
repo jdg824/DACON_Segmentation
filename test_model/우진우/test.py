@@ -67,7 +67,7 @@ total_images_dir = "C:\\Users\\JW\\Downloads\\open\\train_img"
 total_masks_dir = "C:\\Users\\JW\\Downloads\\open\\train_mask"
 
 # 데이터 개수
-total_data_count = 7200
+total_data_count = 7240
 
 # 훈련 데이터 개수
 train_data_count = int(total_data_count * 0.6)
@@ -131,7 +131,7 @@ val_generator = zip(val_dataset, val_masks_dataset)
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
 # 모델 학습
-model.fit(train_generator, epochs=10, validation_data=val_generator)
+model.fit(train_generator, epochs=10, steps_per_epoch=train_data_count, validation_data=val_generator)
 
 # 학습된 모델 저장
 model.save_weights("C:\\Users\\JW\\Downloads\\open\\tran_model")
