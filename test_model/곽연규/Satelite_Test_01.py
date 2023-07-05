@@ -111,3 +111,5 @@ model.fit(train_generator, epochs=10, validation_data=val_generator)
 
 # 학습된 모델 저장
 model.save_weights('path/to/weights.h5')
+
+#finsih
