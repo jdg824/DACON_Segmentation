@@ -82,34 +82,32 @@ train_masks_dataset = datagen.flow_from_directory(
     class_mode=None,
     seed=42
 )
-print(train_dataset[])
-# train_generator = zip(train_dataset, train_masks_dataset)
+
+train_generator = zip(train_dataset, train_masks_dataset)
 
 # 검증 데이터셋 생성
-# val_dataset = datagen.flow_from_directory(
-#     val_images_dir,
-#     target_size=input_shape[:2],
-#     class_mode=None,
-#     seed=42
-# )
+val_dataset = datagen.flow_from_directory(
+    val_images_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
 
-# val_masks_dataset = datagen.flow_from_directory(
-#     val_masks_dir,
-#     target_size=input_shape[:2],
-#     class_mode=None,
-#     seed=42
-# )
+val_masks_dataset = datagen.flow_from_directory(
+    val_masks_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
 
-# # val_generator = zip(val_dataset, val_masks_dataset)
-
-
+# val_generator = zip(val_dataset, val_masks_dataset)
 
 
-# # 모델 학습 설정
-# model.compile(optimizer='adam', loss='binary_crossentropy')
+# 모델 학습 설정
+model.compile(optimizer='adam', loss='binary_crossentropy')
 
-#     # 모델 학습
-# model.fit(train_dataset,train_masks_dataset, epochs=10, validation_data=(val_dataset,val_masks_dataset))
+    # 모델 학습
+model.fit(train_dataset,train_masks_dataset, epochs=10, validation_data=(val_dataset,val_masks_dataset))
 
-#     # 학습된 모델 저장
-# model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_model")
+    # 학습된 모델 저장
+model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_model")

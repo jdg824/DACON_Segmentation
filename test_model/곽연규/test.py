@@ -61,14 +61,20 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'C:\\open\\open\\train_img'
-train_masks_dir = 'C:\\open\\open\\train_mask'
-val_images_dir = 'C:\\open\\open\\val_img'
-val_masks_dir = 'C:\\open\\open\\val_mask'
+# train_images_dir = 'C:\\open\\open\\train_img'
+# train_masks_dir = 'C:\\open\\open\\train_mask'
+# val_images_dir = 'C:\\open\\open\\val_img'
+# val_masks_dir = 'C:\\open\\open\\val_mask'
+
+train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_imag"
+train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
+val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
+val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
 
 datagen = ImageDataGenerator(rescale=1./255)
 
 # 훈련 데이터셋 생성
+
 train_dataset = datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
@@ -107,11 +113,11 @@ val_masks_dataset = datagen.flow_from_directory(
 val_generator = zip(val_dataset, val_masks_dataset)
 
 # Set up GPU configuration
-physical_devices = tf.config.list_physical_devices('GPU')
-if physical_devices:
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
-else:
-    print("No GPU available. Switching to CPU mode.")
+# physical_devices = tf.config.list_physical_devices('GPU')
+# if physical_devices:
+#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# else:
+#     print("No GPU available. Switching to CPU mode.")
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
