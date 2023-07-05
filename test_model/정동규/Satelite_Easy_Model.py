@@ -61,10 +61,10 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\tra_img'
-train_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\tra_ma'
-val_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_img'
-val_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_ma'
+train_images_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\tra_img"
+train_masks_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\tra_ma"
+val_images_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\val_im"
+val_masks_dir = "C:\\Users\\IT\\Desktop\\DACON\\open\\val_ma"
 
 datagen = ImageDataGenerator(rescale=1./255)
 
@@ -73,7 +73,7 @@ train_dataset = datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size=16,
+    batch_size=32,
     seed=42
 )
 
@@ -81,7 +81,7 @@ train_masks_dataset = datagen.flow_from_directory(
     train_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size=16,
+    batch_size=32,
     seed=42
 )
 
@@ -92,7 +92,7 @@ val_dataset = datagen.flow_from_directory(
     val_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size=16,
+    batch_size=32,
     seed=42
 )
 
@@ -100,13 +100,13 @@ val_masks_dataset = datagen.flow_from_directory(
     val_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size=16,
+    batch_size=32,
     seed=42
 )
 
 val_generator = zip(val_dataset, val_masks_dataset)
 
-# Set up GPU configuration
+# GPU 설정
 physical_devices = tf.config.list_physical_devices('GPU')
 if physical_devices:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -120,4 +120,4 @@ model.compile(optimizer='adam', loss='binary_crossentropy')
 model.fit(train_generator, epochs=5, validation_data=val_generator)
 
 # 학습된 모델 저장
-model.save_weights('C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\model_save')
+model.save_weights("C:\\Users\\IT\\Desktop\\DACON\\open\\model\\U-net.h5")
