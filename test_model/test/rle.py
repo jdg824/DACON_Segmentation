@@ -16,14 +16,14 @@ def rle_decode(mask_rle, shape):
     return img.reshape(shape)
 
 # CSV 파일 경로
-csv_file_path = "C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train.csv"  #train.csv 파일 경로 
+csv_file_path = "C:\\Users\\IT\\Desktop\\dacon_image\\train.csv"  #train.csv 파일 경로 
 
 # 마스크 이미지 크기
 image_width = 1024
 image_height = 1024
 
 # 결과를 저장할 폴더 경로
-output_folder = "C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\mask"   #저장할 파일 경로
+output_folder = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"   #저장할 파일 경로
 
 # 폴더가 존재하지 않으면 생성
 if not os.path.exists(output_folder):

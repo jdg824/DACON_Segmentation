@@ -61,10 +61,10 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_img'
-train_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_mask'
-val_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_img'
-val_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_mask'
+train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_img"
+train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
+val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
+val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
 
 datagen = ImageDataGenerator(rescale=1./255)
 
@@ -109,4 +109,4 @@ model.compile(optimizer='adam', loss='binary_crossentropy')
 model.fit(train_generator, epochs=10, validation_data=val_generator)
 
     # 학습된 모델 저장
-model.save_weights('C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_model')
+model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_model")
