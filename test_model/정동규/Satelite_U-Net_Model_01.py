@@ -1,9 +1,7 @@
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import random
-import os
 
 # U-Net 모델 정의
 def unet(input_shape):
@@ -63,43 +61,23 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-total_images_dir = "C:\\Users\\JW\\Downloads\\open\\train_img"
-total_masks_dir = "C:\\Users\\JW\\Downloads\\open\\train_mask"
-
-# 데이터 개수
-total_data_count = 7140
-
-# 훈련 데이터 개수
-train_data_count = int(total_data_count * 0.6)
-
-# 데이터 인덱스 리스트
-data_indices = list(range(total_data_count))
-
-# 데이터 인덱스 섞기
-random.seed(42)
-random.shuffle(data_indices)
-
-# 훈련 데이터 인덱스
-train_indices = data_indices[:train_data_count]
-
-# 검증 데이터 인덱스
-val_indices = data_indices[train_data_count:]
+train_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_img'
+train_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_mask'
+val_images_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_image'
+val_masks_dir = 'C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_mask'
 
 datagen = ImageDataGenerator(rescale=1./255)
 
 # 훈련 데이터셋 생성
-train_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in train_indices]
-train_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in train_indices]
-
 train_dataset = datagen.flow_from_directory(
-    total_images_dir,  # 단일 디렉토리 경로로 수정
+    train_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
 )
 
 train_masks_dataset = datagen.flow_from_directory(
-    total_masks_dir,  # 단일 디렉토리 경로로 수정
+    train_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
@@ -108,18 +86,15 @@ train_masks_dataset = datagen.flow_from_directory(
 train_generator = zip(train_dataset, train_masks_dataset)
 
 # 검증 데이터셋 생성
-val_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in val_indices]
-val_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in val_indices]
-
 val_dataset = datagen.flow_from_directory(
-    total_images_dir,  # 단일 디렉토리 경로로 수정
+    val_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
 )
 
 val_masks_dataset = datagen.flow_from_directory(
-    total_masks_dir,  # 단일 디렉토리 경로로 수정
+    val_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
@@ -127,11 +102,18 @@ val_masks_dataset = datagen.flow_from_directory(
 
 val_generator = zip(val_dataset, val_masks_dataset)
 
+# Set up GPU configuration
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+else:
+    print("No GPU available. Switching to CPU mode.")
+
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
 # 모델 학습
-model.fit(train_generator, epochs=10, steps_per_epoch=train_data_count, validation_data=val_generator)
+model.fit(train_generator, epochs=1, steps_per_epoch=4339, validation_data=val_generator, validation_steps=2801)
 
 # 학습된 모델 저장
-model.save_weights("C:\\Users\\JW\\Downloads\\open\\tran_model")
+model.save_weights('C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\model_save')
