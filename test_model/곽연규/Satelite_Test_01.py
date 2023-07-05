@@ -2,6 +2,8 @@ import tensorflow as tf
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import random
+import os
 
 # U-Net 모델 정의
 def unet(input_shape):
@@ -55,61 +57,84 @@ def unet(input_shape):
     return model
 
 # 입력 이미지의 크기 지정
-input_shape = (256, 256, 3)
+input_shape = (1024, 1024, 3)
 
 # U-Net 모델 생성
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'path/to/train/images'
-train_masks_dir = 'path/to/train/masks'
-val_images_dir = 'path/to/validation/images'
-val_masks_dir = 'path/to/validation/masks'
+total_images_dir = "C:\\open\\open\\train_img"
+total_masks_dir = "C:\\open\\open\\train_mask"
 
-# 데이터 전처리 및 증강 설정
+# 데이터 개수
+total_data_count = 7140
+
+# 훈련 데이터 개수
+train_data_count = int(total_data_count * 0.6)
+
+# 데이터 인덱스 리스트
+data_indices = list(range(total_data_count))
+
+# 데이터 인덱스 섞기
+random.seed(42)
+random.shuffle(data_indices)
+
+# 훈련 데이터 인덱스
+train_indices = data_indices[:train_data_count]
+
+# 검증 데이터 인덱스
+val_indices = data_indices[train_data_count:]
+
 datagen = ImageDataGenerator(rescale=1./255)
 
 # 훈련 데이터셋 생성
+train_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in train_indices]
+train_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in train_indices]
+
 train_dataset = datagen.flow_from_directory(
-    train_images_dir,
+    directory = total_images_dir,  # 단일 디렉토리 경로로 수정
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
 )
 
-train_masks_dataset = datagen.flow_from_directory(
-    train_masks_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
+# train_masks_dataset = datagen.flow_from_directory(
+#     total_masks_dir,  # 단일 디렉토리 경로로 수정
+#     target_size=input_shape[:2],
+#     class_mode=None,
+#     seed=42
+# )
 
-train_generator = zip(train_dataset, train_masks_dataset)
+
+# train_generator = zip(train_dataset, train_masks_dataset)
 
 # 검증 데이터셋 생성
+val_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in val_indices]
+#val_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in val_indices]
+
 val_dataset = datagen.flow_from_directory(
-    val_images_dir,
+    total_images_dir,  # 단일 디렉토리 경로로 수정
     target_size=input_shape[:2],
     class_mode=None,
     seed=42
 )
 
-val_masks_dataset = datagen.flow_from_directory(
-    val_masks_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
+# val_masks_dataset = datagen.flow_from_directory(
+#     total_masks_dir,  # 단일 디렉토리 경로로 수정
+#     target_size=input_shape[:2],
+#     class_mode=None,
+#     seed=42
+# )
 
-val_generator = zip(val_dataset, val_masks_dataset)
+
+
+#val_generator = zip(val_dataset, val_masks_dataset)
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
 # 모델 학습
-model.fit(train_generator, epochs=10, validation_data=val_generator)
+model.fit(train_dataset, epochs=10, steps_per_epoch=train_data_count, validation_data=val_dataset)
 
 # 학습된 모델 저장
-model.save_weights('path/to/weights.h5')
-
-#finsih
+model.save_weights("C:\\open\\open\\train_model")
