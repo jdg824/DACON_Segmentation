@@ -61,10 +61,10 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_img"
-train_masks_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_mask"
-val_images_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_image"
-val_masks_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_mask"
+train_images_dir = 'C:\\open\\open\\train_img'
+train_masks_dir = 'C:\\open\\open\\train_mask'
+val_images_dir = 'C:\\open\\open\\val_img'
+val_masks_dir = 'C:\\open\\open\\val_mask'
 
 datagen = ImageDataGenerator(rescale=1./255)
 
@@ -113,7 +113,7 @@ else:
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
 # 모델 학습
-model.fit(train_generator, epochs=1, steps_per_epoch=4339, validation_data=val_generator, validation_steps=2801)
+model.fit(train_generator, epochs=5, validation_data=val_generator)
 
 # 학습된 모델 저장
-model.save_weights("C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\model_save")
+model.save_weights('C:\\open\\open\\U-net_model\\U-Net_01.h5')

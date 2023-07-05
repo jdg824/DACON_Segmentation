@@ -98,19 +98,19 @@ train_dataset = datagen.flow_from_directory(
     seed=42
 )
 
-# train_masks_dataset = datagen.flow_from_directory(
-#     total_masks_dir,  # 단일 디렉토리 경로로 수정
-#     target_size=input_shape[:2],
-#     class_mode=None,
-#     seed=42
-# )
+train_masks_dataset = datagen.flow_from_directory(
+    total_masks_dir,  # 단일 디렉토리 경로로 수정
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
 
 
-# train_generator = zip(train_dataset, train_masks_dataset)
+train_generator = zip(train_dataset, train_masks_dataset)
 
 # 검증 데이터셋 생성
 val_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in val_indices]
-#val_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in val_indices]
+val_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in val_indices]
 
 val_dataset = datagen.flow_from_directory(
     total_images_dir,  # 단일 디렉토리 경로로 수정
@@ -119,16 +119,16 @@ val_dataset = datagen.flow_from_directory(
     seed=42
 )
 
-# val_masks_dataset = datagen.flow_from_directory(
-#     total_masks_dir,  # 단일 디렉토리 경로로 수정
-#     target_size=input_shape[:2],
-#     class_mode=None,
-#     seed=42
-# )
+val_masks_dataset = datagen.flow_from_directory(
+    total_masks_dir,  # 단일 디렉토리 경로로 수정
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
 
 
 
-#val_generator = zip(val_dataset, val_masks_dataset)
+val_generator = zip(val_dataset, val_masks_dataset)
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
