@@ -65,16 +65,7 @@ def unet(input_shape):
     conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
     pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-    conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
-    conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
-    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-
-    up7 = Conv2DTranspose(256, 2, strides=(2, 2), padding='same')(pool3)
-    up7 = concatenate([up7, conv3])
-    conv7 = Conv2D(256, 3, activation='relu', padding='same')(up7)
-    conv7 = Conv2D(256, 3, activation='relu', padding='same')(conv7)
-
-    up8 = Conv2DTranspose(128, 2, strides=(2, 2), padding='same')(conv7)
+    up8 = Conv2DTranspose(128, 2, strides=(2, 2), padding='same')(pool2)
     up8 = concatenate([up8, conv2])
     conv8 = Conv2D(128, 3, activation='relu', padding='same')(up8)
     conv8 = Conv2D(128, 3, activation='relu', padding='same')(conv8)
