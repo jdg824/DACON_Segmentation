@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
@@ -103,21 +104,25 @@ val_masks_dataset = datagen.flow_from_directory(
 val_generator = zip(val_dataset, val_masks_dataset)
 
 # Set up GPU configuration
+# Set up GPU configuration
 physical_devices = tf.config.list_physical_devices('GPU')
 if physical_devices:
     tf.config.experimental.set_virtual_device_configuration(
         physical_devices[0],
-        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)]  # 원하는 메모리 한도 설정
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1024)]
     )
+    # TensorFlow 세션 닫기
+    tf.keras.backend.clear_session()
 else:
     print("No GPU available. Switching to CPU mode.")
+
 
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
 # 모델 학습
-model.fit(train_generator, epochs=1, steps_per_epoch=4339, validation_data=val_generator, validation_steps=2801)
+model.fit(train_generator, epochs=1, alidation_data=val_generator, batch_size=16)
 
 # 학습된 모델 저장
 model.save_weights("C:\\Users\\IT\\Desktop\\DACON\\open\\model\\u_net_model")
