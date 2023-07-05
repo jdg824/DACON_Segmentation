@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import img_to_array, load_img
+import numpy as np
 
-# U-Net 모델 정의
 def unet(input_shape):
     # 인코더 부분
     inputs = Input(input_shape)
@@ -49,71 +49,40 @@ def unet(input_shape):
     conv9 = Conv2D(64, 3, activation='relu', padding='same')(up9)
     conv9 = Conv2D(64, 3, activation='relu', padding='same')(conv9)
 
-    outputs = Conv2D(1, 1, activation='sigmoid')(conv9)
+    outputs = Conv2D(2, 1, activation='softmax')(conv9)
 
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-# 입력 이미지의 크기 지정
+# 입력 이미지의 크기와 클래스 수 지정
 input_shape = (1024, 1024, 3)
 
 # U-Net 모델 생성
 model = unet(input_shape)
 
-# 데이터셋 경로 지정
-train_images_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_img"
-train_masks_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\train_mask"
-val_images_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_image"
-val_masks_dir = "C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\val_mask"
+# 학습된 모델 로드
+model.load_weights("unet_model.h5")
 
-datagen = ImageDataGenerator(rescale=1./255)
+# 외부 위성 이미지 파일 경로 지정
+image_path = "/path/to/satellite/image.jpg"
 
-# 훈련 데이터셋 생성
-train_dataset = datagen.flow_from_directory(
-    train_images_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
+# 이미지 로드 및 전처리
+image = load_img(image_path, target_size=input_shape[:2])
+image = img_to_array(image) / 255.0
+image = np.expand_dims(image, axis=0)
 
-train_masks_dataset = datagen.flow_from_directory(
-    train_masks_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
+# 건물 위치 판별
+predictions = model.predict(image)
+mask = np.argmax(predictions, axis=-1)
+mask = np.squeeze(mask, axis=0)
 
-train_generator = zip(train_dataset, train_masks_dataset)
+# 건물 위치 시각화
+building_mask = np.where(mask == 1, 255, 0).astype(np.uint8)
+building_mask = np.expand_dims(building_mask, axis=-1)
+building_mask = np.repeat(building_mask, 3, axis=-1)
 
-# 검증 데이터셋 생성
-val_dataset = datagen.flow_from_directory(
-    val_images_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-val_masks_dataset = datagen.flow_from_directory(
-    val_masks_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-val_generator = zip(val_dataset, val_masks_dataset)
-
-# Set up GPU configuration
-physical_devices = tf.config.list_physical_devices('GPU')
-if physical_devices:
-    tf.config.experimental.set_memory_growth(physical_devices[0], True)
-else:
-    print("No GPU available. Switching to CPU mode.")
-
-# 모델 학습 설정
-model.compile(optimizer='adam', loss='binary_crossentropy')
-
-# 모델 학습
-model.fit(train_generator, epochs=1, steps_per_epoch=4339, validation_data=val_generator, validation_steps=2801)
-
-# 학습된 모델 저장
-model.save_weights("C:\\Users\\jdg82\\OneDrive\\바탕 화면\\open\\model_save")
+# 건물 위치 시각화된 이미지 저장
+result_image = np.concatenate([image[0], building_mask], axis=1)
+result_image = (result_image * 255).astype(np.uint8)
+result_image_path = "/path/to/result/image.jpg"
+tf.keras.preprocessing.image.save_img(result_image_path, result_image)
