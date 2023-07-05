@@ -67,7 +67,7 @@ total_images_dir = "C:\\Users\\JW\\Downloads\\open\\train_img"
 total_masks_dir = "C:\\Users\\JW\\Downloads\\open\\train_mask"
 
 # 데이터 개수
-total_data_count = 7240
+total_data_count = 7140
 
 # 훈련 데이터 개수
 train_data_count = int(total_data_count * 0.6)
