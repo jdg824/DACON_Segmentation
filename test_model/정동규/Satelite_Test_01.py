@@ -1,6 +1,6 @@
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # U-Net 모델 정의
@@ -55,18 +55,17 @@ def unet(input_shape):
     return model
 
 # 입력 이미지의 크기 지정
-input_shape = (256, 256, 3)
+input_shape = (1024, 1024, 3)
 
 # U-Net 모델 생성
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = 'path/to/train/images'
-train_masks_dir = 'path/to/train/masks'
-val_images_dir = 'path/to/validation/images'
-val_masks_dir = 'path/to/validation/masks'
+train_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_img'
+train_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_mask'
+val_images_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_img'
+val_masks_dir = 'C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_mask'
 
-# 데이터 전처리 및 증강 설정
 datagen = ImageDataGenerator(rescale=1./255)
 
 # 훈련 데이터셋 생성
@@ -103,6 +102,10 @@ val_masks_dataset = datagen.flow_from_directory(
 
 val_generator = zip(val_dataset, val_masks_dataset)
 
+# Set up GPU configuration
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
@@ -110,6 +113,4 @@ model.compile(optimizer='adam', loss='binary_crossentropy')
 model.fit(train_generator, epochs=10, validation_data=val_generator)
 
 # 학습된 모델 저장
-model.save_weights('path/to/weights.h5')
-
-#finsih
+model.save_weights('C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_model')
