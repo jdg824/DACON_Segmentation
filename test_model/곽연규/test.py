@@ -1,47 +1,115 @@
-# -*- coding: utf-8 -*-
+import tensorflow as tf
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-import csv
-import numpy as np
-from PIL import Image
-import os
+# U-Net ëª¨ë¸ ì •ì˜
+def unet(input_shape):
+    # ì¸ì½”ë” ë¶€ë¶„
+    inputs = Input(input_shape)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-# RLE ?””ì½”ë”© ?•¨?ˆ˜
-def rle_decode(mask_rle, shape):
-    s = mask_rle.split()
-    starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
-    starts -= 1
-    ends = starts + lengths
-    img = np.zeros(shape[0]*shape[1], dtype=np.uint8)
-    for lo, hi in zip(starts, ends):
-        img[lo:hi] = 1
-    return img.reshape(shape)
+    conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
+    conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-# CSV ?ŒŒ?¼ ê²½ë¡œ
-csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"
+    conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
+    conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
+    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
 
-# ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ?¬ê¸?
-image_width = 1024
-image_height = 1024
+    conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
+    conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
+    drop4 = Dropout(0.5)(conv4)
+    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
-# ê²°ê³¼ë¥? ????¥?•  ?´?” ê²½ë¡œ
-output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"
+    # ë””ì½”ë” ë¶€ë¶„
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(pool4)
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same')(conv5)
+    drop5 = Dropout(0.5)(conv5)
 
-# ?´?”ê°? ì¡´ì¬?•˜ì§? ?•Š?œ¼ë©? ?ƒ?„±
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+    up6 = Conv2DTranspose(512, 2, strides=(2, 2), padding='same')(drop5)
+    up6 = concatenate([up6, drop4])
+    conv6 = Conv2D(512, 3, activation='relu', padding='same')(up6)
+    conv6 = Conv2D(512, 3, activation='relu', padding='same')(conv6)
 
-# CSV ?ŒŒ?¼ ?½ê¸?
-with open(csv_file_path, 'r') as csvfile:
-    reader = csv.reader(csvfile)
-    next(reader)  # ?—¤?” ?Š¤?‚µ
-    for idx, row in enumerate(reader):
-        # RLE ?¸ì½”ë”© ? •ë³? ê°?? ¸?˜¤ê¸?
-        mask_rle = row[-1]  # ë§ˆì??ë§? ?—´?´ RLE ?¸ì½”ë”© ? •ë³?
+    up7 = Conv2DTranspose(256, 2, strides=(2, 2), padding='same')(conv6)
+    up7 = concatenate([up7, conv3])
+    conv7 = Conv2D(256, 3, activation='relu', padding='same')(up7)
+    conv7 = Conv2D(256, 3, activation='relu', padding='same')(conv7)
 
-        # RLE ?””ì½”ë”©?•˜?—¬ ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ?ƒ?„±
-        mask = rle_decode(mask_rle, (image_height, image_width))
+    up8 = Conv2DTranspose(128, 2, strides=(2, 2), padding='same')(conv7)
+    up8 = concatenate([up8, conv2])
+    conv8 = Conv2D(128, 3, activation='relu', padding='same')(up8)
+    conv8 = Conv2D(128, 3, activation='relu', padding='same')(conv8)
 
-        # ë§ˆìŠ¤?¬ ?´ë¯¸ì?? ????¥
-        mask_image = Image.fromarray(mask * 255)  # ?´ì§? ë§ˆìŠ¤?¬ë¥? 0ê³? 255ë¡? ë³??™˜
-        mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
-        mask_image.save(mask_image_path)
+    up9 = Conv2DTranspose(64, 2, strides=(2, 2), padding='same')(conv8)
+    up9 = concatenate([up9, conv1], axis=3)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same')(up9)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same')(conv9)
+
+    outputs = Conv2D(1, 1, activation='sigmoid')(conv9)
+
+    model = Model(inputs=inputs, outputs=outputs)
+    return model
+
+# ì…ë ¥ ì´ë¯¸ì§€ì˜ í¬ê¸° ì§€ì •
+input_shape = (256, 256, 3)
+
+# U-Net ëª¨ë¸ ìƒì„±
+model = unet(input_shape)
+
+# ë°ì´í„°ì…‹ ê²½ë¡œ ì§€ì •
+train_images_dir = 'path/to/train/images'
+train_masks_dir = 'path/to/train/masks'
+val_images_dir = 'path/to/validation/images'
+val_masks_dir = 'path/to/validation/masks'
+
+# ë°ì´í„° ì „ì²˜ë¦¬ ë° ì¦ê°• ì„¤ì •
+datagen = ImageDataGenerator(rescale=1./255)
+
+# í›ˆë ¨ ë°ì´í„°ì…‹ ìƒì„±
+train_dataset = datagen.flow_from_directory(
+    train_images_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+train_masks_dataset = datagen.flow_from_directory(
+    train_masks_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+train_generator = zip(train_dataset, train_masks_dataset)
+
+# ê²€ì¦ ë°ì´í„°ì…‹ ìƒì„±
+val_dataset = datagen.flow_from_directory(
+    val_images_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+val_masks_dataset = datagen.flow_from_directory(
+    val_masks_dir,
+    target_size=input_shape[:2],
+    class_mode=None,
+    seed=42
+)
+
+val_generator = zip(val_dataset, val_masks_dataset)
+
+# ëª¨ë¸ í•™ìŠµ ì„¤ì •
+model.compile(optimizer='adam', loss='binary_crossentropy')
+
+# ëª¨ë¸ í•™ìŠµ
+model.fit(train_generator, epochs=10, validation_data=val_generator)
+
+# í•™ìŠµëœ ëª¨ë¸ ì €ì¥
+model.save_weights('path/to/weights.h5')
+
+print("a")
