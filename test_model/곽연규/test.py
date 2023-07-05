@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
 # U-Net 모델 정의
 def unet(input_shape):
     # 인코더 부분
