@@ -7,6 +7,8 @@ import random
 def unet(input_shape):
     # 인코더 부분
     inputs = Input(input_shape)
+
+
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
@@ -61,7 +63,7 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_img"
+train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_imag"
 train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
 val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
 val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
@@ -72,18 +74,18 @@ datagen = ImageDataGenerator(rescale=1./255)
 train_dataset = datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
-    class_mode=None,
+    class_mode='binary',
     seed=42
 )
 
 train_masks_dataset = datagen.flow_from_directory(
     train_masks_dir,
     target_size=input_shape[:2],
-    class_mode=None,
+    class_mode="binary",
     seed=42
 )
 
-train_generator = zip(train_dataset, train_masks_dataset)
+# train_generator = zip(train_dataset, train_masks_dataset)
 
 # 검증 데이터셋 생성
 val_dataset = datagen.flow_from_directory(
@@ -100,6 +102,8 @@ val_masks_dataset = datagen.flow_from_directory(
     seed=42
 )
 
+
+
 # val_generator = zip(val_dataset, val_masks_dataset)
 
 
@@ -107,7 +111,7 @@ val_masks_dataset = datagen.flow_from_directory(
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
     # 모델 학습
-model.fit(train_dataset,train_masks_dataset, epochs=10, validation_data=(val_dataset,val_masks_dataset))
+model.fit(train_dataset, epochs=10, validation_data=val_dataset)
 
     # 학습된 모델 저장
-model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_model")
+model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_modell")
