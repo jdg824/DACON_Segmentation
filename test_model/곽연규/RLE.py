@@ -46,5 +46,3 @@ with open(csv_file_path, 'r') as csvfile:
         mask_image = Image.fromarray(mask * 255)  # 이진 마스크를 0과 255로 변환
         mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
         mask_image.save(mask_image_path)
-
-print("a")
