@@ -2,13 +2,13 @@ import os
 import numpy as np
 import cv2
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 
 # 데이터 경로 설정
-train_img_folder = 'train_img/'
-train_mask_folder = 'train_mask/'
-test_img_folder = 'test_img/'
+train_img_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\train_img"
+train_mask_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\train_mask"
+test_img_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\test_img"
 
 # 이미지와 마스크 불러오기
 def load_data(img_folder, mask_folder):
