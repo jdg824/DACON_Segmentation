@@ -6,11 +6,10 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 
 # 데이터 경로 설정
-train_img_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\train_img"
-train_mask_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\train_mask"
-test_img_folder = "C:\\Users\\JW\\Desktop\\테스트버전\\test_img"
+train_img_folder = "C:\\Users\\JW\\Downloads\\version\\train_img"
+train_mask_folder = "C:\\Users\\JW\\Downloads\\version\\train_mask"
+test_img_folder = "C:\\Users\\JW\\Downloads\\version\\test_img"
 
-# 이미지와 마스크 불러오기
 def load_data(img_folder, mask_folder):
     img_files = os.listdir(img_folder)
     mask_files = os.listdir(mask_folder)
@@ -21,14 +20,31 @@ def load_data(img_folder, mask_folder):
         img_path = os.path.join(img_folder, file)
         mask_path = os.path.join(mask_folder, file)
         
-        img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-        
-        images.append(img)
-        masks.append(mask)
+        if os.path.isfile(img_path) and os.path.isfile(mask_path) and file.endswith('.png'):
+            try:
+                img = cv2.imread(img_path)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+                
+                if img is not None and mask is not None:
+                    images.append(img)
+                    masks.append(mask)
+                else:
+                    print(f"Failed to read file: {file}")
+            except Exception as e:
+                print(f"Error reading file: {file}")
+                print(str(e))
+        else:
+            print(f"Skipping file: {file}")
+    
+    if len(images) == 0:
+        raise ValueError("No images found. Please check the image folder path.")
+    if len(masks) == 0:
+        raise ValueError("No masks found. Please check the mask folder path.")
     
     return np.array(images), np.array(masks)
+
+
 
 # U-Net 모델 정의
 def unet_model(input_shape):
@@ -85,7 +101,7 @@ def unet_model(input_shape):
 
 # 데이터 로드
 train_images, train_masks = load_data(train_img_folder, train_mask_folder)
-test_images, _ = load_data(test_img_folder, '')
+test_images, _ = load_data(test_img_folder, train_mask_folder)
 
 # 데이터 전처리
 train_images = train_images / 255.0
