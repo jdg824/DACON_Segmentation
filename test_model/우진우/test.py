@@ -2,15 +2,36 @@ import os
 import numpy as np
 import cv2
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import random
-import os
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+
+# 데이터 경로 설정
+train_img_folder = 'train_img/'
+train_mask_folder = 'train_mask/'
+test_img_folder = 'test_img/'
+
+# 이미지와 마스크 불러오기
+def load_data(img_folder, mask_folder):
+    img_files = os.listdir(img_folder)
+    mask_files = os.listdir(mask_folder)
+    images = []
+    masks = []
+    
+    for file in img_files:
+        img_path = os.path.join(img_folder, file)
+        mask_path = os.path.join(mask_folder, file)
+        
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        
+        images.append(img)
+        masks.append(mask)
+    
+    return np.array(images), np.array(masks)
 
 # U-Net 모델 정의
-def unet(input_shape):
-    # 인코더 부분
+def unet_model(input_shape):
     inputs = Input(input_shape)
 
     # Contracting Path
@@ -35,6 +56,7 @@ def unet(input_shape):
     conv5 = Conv2D(1024, 3, activation='relu', padding='same')(conv5)
     drop5 = Dropout(0.5)(conv5)
 
+    # Expanding Path
     up6 = Conv2DTranspose(512, 2, strides=(2, 2), padding='same')(drop5)
     merge6 = concatenate([drop4, up6], axis=3)
     conv6 = Conv2D(512, 3, activation='relu', padding='same')(merge6)
@@ -51,90 +73,40 @@ def unet(input_shape):
     conv8 = Conv2D(128, 3, activation='relu', padding='same')(conv8)
 
     up9 = Conv2DTranspose(64, 2, strides=(2, 2), padding='same')(conv8)
-    up9 = concatenate([up9, conv1], axis=3)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same')(up9)
+    merge9 = concatenate([conv1, up9], axis=3)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same')(merge9)
     conv9 = Conv2D(64, 3, activation='relu', padding='same')(conv9)
     conv9 = Conv2D(2, 3, activation='relu', padding='same')(conv9)
 
-    # Output layer
     outputs = Conv2D(1, 1, activation='sigmoid')(conv9)
 
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-# 입력 이미지의 크기 지정
-input_shape = (1024, 1024, 3)
+# 데이터 로드
+train_images, train_masks = load_data(train_img_folder, train_mask_folder)
+test_images, _ = load_data(test_img_folder, '')
+
+# 데이터 전처리
+train_images = train_images / 255.0
+train_masks = train_masks / 255.0
 
 # U-Net 모델 생성
-model = unet(input_shape)
+input_shape = train_images[0].shape
+model = unet_model(input_shape)
 
-# 데이터셋 경로 지정
-total_images_dir = "C:\\Users\\JW\\Downloads\\open\\train_img"
-total_masks_dir = "C:\\Users\\JW\\Downloads\\open\\train_mask"
-
-# 데이터 개수
-total_data_count = 7140
-
-# 훈련 데이터 개수
-train_data_count = int(total_data_count * 0.6)
-
-# 데이터 인덱스 리스트
-data_indices = list(range(total_data_count))
-
-# 데이터 인덱스 섞기
-random.seed(42)
-random.shuffle(data_indices)
-
-# 훈련 데이터 인덱스
-train_indices = data_indices[:train_data_count]
-
-# 검증 데이터 인덱스
-val_indices = data_indices[train_data_count:]
-
-datagen = ImageDataGenerator(rescale=1./255)
-
-# 훈련 데이터셋 생성
-train_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in train_indices]
-train_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in train_indices]
-
-train_dataset = datagen.flow_from_directory(
-    total_images_dir,  # 단일 디렉토리 경로로 수정
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-train_masks_dataset = datagen.flow_from_directory(
-    total_masks_dir,  # 단일 디렉토리 경로로 수정
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-train_generator = zip(train_dataset, train_masks_dataset)
-
-# 검증 데이터셋 생성
-val_images_dir = [os.path.join(total_images_dir, f"train_image_{idx}.png") for idx in val_indices]
-val_masks_dir = [os.path.join(total_masks_dir, f"mask_image_{idx}.png") for idx in val_indices]
-
-val_dataset = datagen.flow_from_directory(
-    total_images_dir,  # 단일 디렉토리 경로로 수정
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-val_masks_dataset = datagen.flow_from_directory(
-    total_masks_dir,  # 단일 디렉토리 경로로 수정
-    target_size=input_shape[:2],
-    class_mode=None,
-    seed=42
-)
-
-val_generator = zip(val_dataset, val_masks_dataset)
-
-# 모델 학습 설정
-model.compile(optimizer='adam', loss='binary_crossentropy')
+# 모델 컴파일
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 # 모델 학습
-model.fit(train_generator, epochs=10, steps_per_epoch=train_data_count, validation_data=val_generator)
+model.fit(train_images, train_masks, batch_size=16, epochs=10)
+
+# 테스트 데이터 예측
+test_images = test_images / 255.0
+predictions = model.predict(test_images)
+
+# 결과 시각화
+for i, pred in enumerate(predictions):
+    pred = np.squeeze(pred)
+    pred = np.round(pred * 255).astype(np.uint8)
+    cv2.imwrite(f'prediction_{i}.png', pred)
