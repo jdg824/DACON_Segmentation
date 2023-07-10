@@ -16,16 +16,14 @@ def rle_decode(mask_rle, shape):
     return img.reshape(shape)
 
 # CSV 파일 경로
-#csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"  #train.csv 파일 경로 
-csv_file_path = "C:\\Users\\IT\\Desktop\\open\\train.csv"
+csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"  #train.csv 파일 경로 
 
 # 마스크 이미지 크기
 image_width = 1024
 image_height = 1024
 
 # 결과를 저장할 폴더 경로
-#output_folder = "C:\\Users\\JW\\Downloads\\open\\train_mask"   #저장할 파일 경로
-output_folder = "C:\\Users\\IT\\Desktop\\open\\train_mask"
+output_folder = "C:\\Users\\JW\\Downloads\\version\\train_mask"   #저장할 파일 경로
 
 # 폴더가 존재하지 않으면 생성
 if not os.path.exists(output_folder):
@@ -44,5 +42,5 @@ with open(csv_file_path, 'r') as csvfile:
 
         # 마스크 이미지 저장
         mask_image = Image.fromarray(mask * 255)  # 이진 마스크를 0과 255로 변환
-        mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
+        mask_image_path = os.path.join(output_folder, f'TRAIN_{idx}.png')
         mask_image.save(mask_image_path)

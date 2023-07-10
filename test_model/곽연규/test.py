@@ -1,11 +1,10 @@
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-# U-Net ëª¨ë¸ ? •?˜
+# U-Net ëª¨ë¸ ì •ì˜
 def unet(input_shape):
-    # ?¸ì½”ë” ë¶?ë¶?
+    # ì¸ì½”ë” ë¶€ë¶„
     inputs = Input(input_shape)
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
@@ -24,7 +23,7 @@ def unet(input_shape):
     drop4 = Dropout(0.5)(conv4)
     pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
-    # ?””ì½”ë” ë¶?ë¶?
+    # ë””ì½”ë” ë¶€ë¶„
     conv5 = Conv2D(1024, 3, activation='relu', padding='same')(pool4)
     conv5 = Conv2D(1024, 3, activation='relu', padding='same')(conv5)
     drop5 = Dropout(0.5)(conv5)
@@ -54,26 +53,33 @@ def unet(input_shape):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-# ?…? ¥ ?´ë¯¸ì???˜ ?¬ê¸? ì§?? •
-input_shape = (256, 256, 3)
 
-# U-Net ëª¨ë¸ ?ƒ?„±
+# ì…ë ¥ ì´ë¯¸ì§€ì˜ í¬ê¸° ì§€ì •
+input_shape = (1024, 1024, 3)
+
+# U-Net ëª¨ë¸ ìƒì„±
 model = unet(input_shape)
 
-# ?°?´?„°?…‹ ê²½ë¡œ ì§?? •
-train_images_dir = 'path/to/train/images'
-train_masks_dir = 'path/to/train/masks'
-val_images_dir = 'path/to/validation/images'
-val_masks_dir = 'path/to/validation/masks'
+# ë°ì´í„°ì…‹ ê²½ë¡œ ì§€ì •
+# train_images_dir = 'C:\\open\\open\\train_img'
+# train_masks_dir = 'C:\\open\\open\\train_mask'
+# val_images_dir = 'C:\\open\\open\\val_img'
+# val_masks_dir = 'C:\\open\\open\\val_mask'
 
-# ?°?´?„° ? „ì²˜ë¦¬ ë°? ì¦ê°• ?„¤? •
+train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_imag"
+train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
+val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
+val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
+
 datagen = ImageDataGenerator(rescale=1./255)
 
-# ?›ˆ? ¨ ?°?´?„°?…‹ ?ƒ?„±
+# í›ˆë ¨ ë°ì´í„°ì…‹ ìƒì„±
+
 train_dataset = datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
+    batch_size = 64,
     seed=42
 )
 
@@ -81,16 +87,18 @@ train_masks_dataset = datagen.flow_from_directory(
     train_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
+    batch_size = 64,
     seed=42
 )
 
 train_generator = zip(train_dataset, train_masks_dataset)
 
-# ê²?ì¦? ?°?´?„°?…‹ ?ƒ?„±
+# ê²€ì¦ ë°ì´í„°ì…‹ ìƒì„±
 val_dataset = datagen.flow_from_directory(
     val_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
+    batch_size = 64,
     seed=42
 )
 
@@ -98,20 +106,27 @@ val_masks_dataset = datagen.flow_from_directory(
     val_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
+    batch_size = 64,
     seed=42
 )
 
 val_generator = zip(val_dataset, val_masks_dataset)
 
-# ëª¨ë¸ ?•™?Šµ ?„¤? •
+# Set up GPU configuration
+# physical_devices = tf.config.list_physical_devices('GPU')
+# if physical_devices:
+#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# else:
+#     print("No GPU available. Switching to CPU mode.")
+
+# ëª¨ë¸ í•™ìŠµ ì„¤ì •
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
-# ëª¨ë¸ ?•™?Šµ
-model.fit(train_generator, epochs=10, validation_data=val_generator)
+# # ëª¨ë¸ í•™ìŠµ
+# model.fit(train_generator, epochs=5, validation_data=val_generator)
+# ëª¨ë¸ í•™ìŠµ
+epochs = 5
+model.fit(train_generator, epochs=epochs, steps_per_epoch=len(train_dataset), validation_data=val_generator, validation_steps=len(val_dataset))
 
-# ?•™?Šµ?œ ëª¨ë¸ ????¥
-model.save_weights('path/to/weights.h5')
-
-print("a")
-
-print("¾È³çÇÏ¼¼¿ä")
+# í•™ìŠµëœ ëª¨ë¸ ì €ì¥
+model.save_weights('C:\\open\\open\\U-net_model\\U-Net_01.h5')
