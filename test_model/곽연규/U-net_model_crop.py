@@ -1,11 +1,33 @@
+from PIL import Image
+
+def crop_image(image, patch_size):
+    width, height = image.size
+    patches = []
+    
+    for y in range(0, height, patch_size):
+        for x in range(0, width, patch_size):
+            patch = image.crop((x, y, x+patch_size, y+patch_size))
+            patches.append(patch)
+    
+    return patches
+
+# 1024x1024 이미지 로드
+image = Image.open("path/to/image.jpg")
+
+# 이미지를 224x224 크기의 패치로 잘라서 리스트에 저장
+patch_size = 224
+patches = crop_image(image, patch_size)
+
+
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
+
 # U-Net 모델 정의
 def unet(input_shape):
     # 인코더 부분
     inputs = Input(input_shape)
+
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
     conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
@@ -53,80 +75,45 @@ def unet(input_shape):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-
 # 입력 이미지의 크기 지정
-input_shape = (1024, 1024, 3)
+input_shape = (224, 224, 3)
 
 # U-Net 모델 생성
 model = unet(input_shape)
 
-# 데이터셋 경로 지정
-# train_images_dir = 'C:\\open\\open\\train_img'
-# train_masks_dir = 'C:\\open\\open\\train_mask'
-# val_images_dir = 'C:\\open\\open\\val_img'
-# val_masks_dir = 'C:\\open\\open\\val_mask'
+# 모델 컴파일 설정
+model.compile(optimizer='adam', loss='binary_crossentropy')
 
-train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_imag"
-train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
-val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
-val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
+# 데이터셋 경로 설정
+train_images_dir = "path/to/train_images_directory"
+train_masks_dir = "path/to/train_masks_directory"
 
-datagen = ImageDataGenerator(rescale=1./255)
+# ImageDataGenerator를 사용하여 train 이미지와 mask 이미지를 불러옴
+image_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+mask_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
-# 훈련 데이터셋 생성
-
-train_dataset = datagen.flow_from_directory(
+# train 이미지와 mask 이미지를 불러와서 배치 단위로 제공
+image_generator = image_datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=32,
     seed=42
 )
 
-train_masks_dataset = datagen.flow_from_directory(
+mask_generator = mask_datagen.flow_from_directory(
     train_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=32,
     seed=42
 )
 
-train_generator = zip(train_dataset, train_masks_dataset)
+# image_generator와 mask_generator를 결합하여 학습 데이터셋 생성
+train_dataset = zip(image_generator, mask_generator)
 
-# 검증 데이터셋 생성
-val_dataset = datagen.flow_from_directory(
-    val_images_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    batch_size = 64,
-    seed=42
-)
-
-val_masks_dataset = datagen.flow_from_directory(
-    val_masks_dir,
-    target_size=input_shape[:2],
-    class_mode=None,
-    batch_size = 64,
-    seed=42
-)
-
-val_generator = zip(val_dataset, val_masks_dataset)
-
-# Set up GPU configuration
-# physical_devices = tf.config.list_physical_devices('GPU')
-# if physical_devices:
-#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
-# else:
-#     print("No GPU available. Switching to CPU mode.")
-
-# 모델 학습 설정
-model.compile(optimizer='adam', loss='binary_crossentropy')
-
-# # 모델 학습
-# model.fit(train_generator, epochs=5, validation_data=val_generator)
 # 모델 학습
-epochs = 5
-model.fit(train_generator, epochs=epochs, steps_per_epoch=len(train_dataset), validation_data=val_generator, validation_steps=len(val_dataset))
+model.fit(train_dataset, epochs=10)
 
 # 학습된 모델 저장
-model.save_weights('C:\\open\\open\\U-net_model\\U-Net_01.h5')
+model.save("building_segmentation_model.h5")

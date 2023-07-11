@@ -10,13 +10,12 @@ def rle_decode(mask_rle, shape):
     starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
     starts -= 1
     ends = starts + lengths
-    img = np.zeros(shape[0]*shape[1], dtype=np.uint8)
+    img = np.zeros(shape[0]*shape[1]*3, dtype=np.uint8)  # 24비트 이미지를 위해 *3 추가
     for lo, hi in zip(starts, ends):
-        img[lo:hi] = 1
-    return img.reshape(shape)
+        img[lo*3:hi*3] = 255  # 흰색으로 설정 (RGB 값 [255, 255, 255])
+    return img.reshape(shape[0], shape[1], 3)  # 24비트 이미지로 reshape
 
 # CSV 파일 경로
-#csv_file_path = "C:\\Users\\JW\\Downloads\\open\\train.csv"  #train.csv 파일 경로 
 csv_file_path = "C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train.csv"
 
 # 마스크 이미지 크기
@@ -24,8 +23,7 @@ image_width = 1024
 image_height = 1024
 
 # 결과를 저장할 폴더 경로
-#output_folder = "C:\open\open\train_mask"   #저장할 파일 경로
-output_folder = "C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train_mask"
+output_folder = "C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train_mask_24bit"
 
 # 폴더가 존재하지 않으면 생성
 if not os.path.exists(output_folder):
@@ -43,6 +41,6 @@ with open(csv_file_path, 'r') as csvfile:
         mask = rle_decode(mask_rle, (image_height, image_width))
 
         # 마스크 이미지 저장
-        mask_image = Image.fromarray(mask * 255)  # 이진 마스크를 0과 255로 변환
+        mask_image = Image.fromarray(mask)
         mask_image_path = os.path.join(output_folder, f'mask_image_{idx}.png')
         mask_image.save(mask_image_path)
