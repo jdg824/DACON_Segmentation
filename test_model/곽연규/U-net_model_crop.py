@@ -12,7 +12,7 @@ def crop_image(image, patch_size):
     return patches
 
 # 1024x1024 이미지 로드
-image = Image.open("path/to/image.jpg")
+image = Image.open("C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train_img\\TRAIN_0000.png")
 
 # 이미지를 224x224 크기의 패치로 잘라서 리스트에 저장
 patch_size = 224
