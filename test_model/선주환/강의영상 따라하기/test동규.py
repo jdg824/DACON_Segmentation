@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dropout, concatenate, Conv2DTranspose
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 # U-Net 모델 정의
 def unet(input_shape):
     # 인코더 부분
@@ -53,7 +54,6 @@ def unet(input_shape):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-
 # 입력 이미지의 크기 지정
 input_shape = (1024, 1024, 3)
 
@@ -61,25 +61,19 @@ input_shape = (1024, 1024, 3)
 model = unet(input_shape)
 
 # 데이터셋 경로 지정
-# train_images_dir = 'C:\\open\\open\\train_img'
-# train_masks_dir = 'C:\\open\\open\\train_mask'
-# val_images_dir = 'C:\\open\\open\\val_img'
-# val_masks_dir = 'C:\\open\\open\\val_mask'
-
-train_images_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_imag"
-train_masks_dir = "C:\\Users\\IT\\Desktop\\dacon_image\\train_mask"
-val_images_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_img"
-val_masks_dir ="C:\\Users\\IT\\Desktop\\dacon_image\\val_mask"
+train_images_dir = "C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_img"
+train_masks_dir = "C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\train_mask"
+val_images_dir ="C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_img"
+val_masks_dir ="C:\\Users\\선주환\\Desktop\\dacon_segmentation\\open\\val_mask"
 
 datagen = ImageDataGenerator(rescale=1./255)
 
 # 훈련 데이터셋 생성
-
 train_dataset = datagen.flow_from_directory(
     train_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=500,
     seed=42
 )
 
@@ -87,7 +81,7 @@ train_masks_dataset = datagen.flow_from_directory(
     train_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=500,
     seed=42
 )
 
@@ -98,7 +92,7 @@ val_dataset = datagen.flow_from_directory(
     val_images_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=500,
     seed=42
 )
 
@@ -106,27 +100,24 @@ val_masks_dataset = datagen.flow_from_directory(
     val_masks_dir,
     target_size=input_shape[:2],
     class_mode=None,
-    batch_size = 64,
+    batch_size=500,
     seed=42
 )
 
 val_generator = zip(val_dataset, val_masks_dataset)
 
 # Set up GPU configuration
-# physical_devices = tf.config.list_physical_devices('GPU')
-# if physical_devices:
-#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
-# else:
-#     print("No GPU available. Switching to CPU mode.")
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+else:
+    print("No GPU available. Switching to CPU mode.")
 
 # 모델 학습 설정
 model.compile(optimizer='adam', loss='binary_crossentropy')
 
-# # 모델 학습
-# model.fit(train_generator, epochs=5, validation_data=val_generator)
 # 모델 학습
-epochs = 5
-model.fit(train_generator, epochs=epochs, steps_per_epoch=len(train_dataset), validation_data=val_generator, validation_steps=len(val_dataset))
+model.fit(train_generator,batch_size=500 ,epochs=10, validation_data=val_generator)
 
 # 학습된 모델 저장
-model.save_weights('C:\\open\\open\\U-net_model\\U-Net_01.h5')
+model.save_weights("C:\\Users\\IT\\Desktop\\dacon_image\\train_model\\unet_model.h5")
