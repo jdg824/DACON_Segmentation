@@ -81,15 +81,6 @@ transform = A.Compose(
 dataset = SatelliteDataset(csv_file='C:/open/open/train.csv', transform=transform)
 dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
 
-import matplotlib.pyplot as plt
-# Plot the images
-image, mask = dataset['2']
-imshow(mask)
-axis('off')
-
-# Show the plot
-plt.show()
-
 #Define Model
 
 # U-Net의 기본 구성 요소인 Double Convolution Block을 정의합니다.
