@@ -16,14 +16,14 @@ def rle_decode(mask_rle, shape):
     return img.reshape(shape[0], shape[1], 3)  # 24비트 이미지로 reshape
 
 # CSV 파일 경로
-csv_file_path = "C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train.csv"
+csv_file_path = "C:\\Users\\IT\\Documents\\GitHub\DACON_Segmentation\\DACON_Segmentation\\test_model\\곽연규\\submit.csv"
 
 # 마스크 이미지 크기
 image_width = 1024
 image_height = 1024
 
 # 결과를 저장할 폴더 경로
-output_folder = "C:\\Users\\곽연규\\OneDrive\\바탕 화면\\공동 AI 경진대회\\open\\train_mask_24bit"
+output_folder = "C:\\Users\\IT\\Desktop\\open\\submit_0.35"
 
 # 폴더가 존재하지 않으면 생성
 if not os.path.exists(output_folder):
